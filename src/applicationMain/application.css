@@ -1,1 +1,355 @@
-/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+.root {
+    -pc-ink: #1c1917;
+    -pc-muted: #6f635a;
+    -pc-soft: #f7f3ef;
+    -pc-panel: #fffaf6;
+    -pc-panel-strong: #ffffff;
+    -pc-line: #e6d8ca;
+    -pc-brand: #1b5f73;
+    -pc-brand-dark: #124352;
+    -pc-accent: #d96d3f;
+    -pc-accent-soft: #ffe4d5;
+    -pc-success: #287a52;
+    -pc-danger: #b73535;
+    -pc-danger-soft: #ffe2df;
+    -pc-focus: #0e7490;
+    -fx-font-family: "Avenir Next", "Segoe UI", "Verdana";
+    -fx-font-size: 14px;
+    -fx-text-fill: -pc-ink;
+    -fx-background-color: -pc-soft;
+}
+
+.pc-shell {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.78), rgba(255, 244, 235, 0.92)),
+        -pc-soft;
+}
+
+.pc-header {
+    -fx-background-color: rgba(255, 250, 246, 0.94);
+    -fx-border-color: transparent transparent -pc-line transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-effect: dropshadow(gaussian, rgba(77, 52, 31, 0.08), 18, 0.2, 0, 5);
+}
+
+.pc-header-icon {
+    -fx-min-width: 44px;
+    -fx-min-height: 44px;
+    -fx-alignment: center;
+    -fx-background-radius: 8px;
+    -fx-background-color: -pc-brand;
+}
+
+.pc-header-icon .ikonli-font-icon {
+    -fx-icon-color: white;
+    -fx-icon-size: 22px;
+}
+
+.pc-title {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-ink;
+}
+
+.pc-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-screen {
+    -fx-padding: 26px 30px 30px 30px;
+    -fx-spacing: 18px;
+}
+
+.pc-page-grid {
+    -fx-padding: 26px 30px 30px 30px;
+    -fx-hgap: 18px;
+    -fx-vgap: 18px;
+}
+
+.pc-card {
+    -fx-background-color: -pc-panel-strong;
+    -fx-background-radius: 8px;
+    -fx-border-color: -pc-line;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-padding: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(77, 52, 31, 0.08), 16, 0.24, 0, 5);
+}
+
+.pc-section {
+    -fx-spacing: 10px;
+}
+
+.pc-section-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-brand-dark;
+    -fx-text-transform: uppercase;
+}
+
+.pc-heading {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-ink;
+}
+
+.pc-body {
+    -fx-font-size: 14px;
+    -fx-line-spacing: 3px;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-caption {
+    -fx-font-size: 12px;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-badge {
+    -fx-background-color: #f0e8df;
+    -fx-background-radius: 999px;
+    -fx-padding: 5px 10px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-badge-role {
+    -fx-background-color: -pc-brand;
+    -fx-text-fill: white;
+}
+
+.pc-badge-user {
+    -fx-background-color: -pc-accent-soft;
+    -fx-text-fill: #7c351d;
+}
+
+.pc-badge-unread {
+    -fx-background-color: -pc-accent;
+    -fx-text-fill: white;
+}
+
+.pc-badge-flagged {
+    -fx-background-color: -pc-danger-soft;
+    -fx-text-fill: -pc-danger;
+}
+
+.pc-form-grid {
+    -fx-hgap: 14px;
+    -fx-vgap: 12px;
+}
+
+.pc-field-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-actions {
+    -fx-spacing: 10px;
+}
+
+.button,
+.pc-button {
+    -fx-background-radius: 7px;
+    -fx-border-radius: 7px;
+    -fx-padding: 9px 14px;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: -pc-brand;
+    -fx-text-fill: white;
+}
+
+.button .ikonli-font-icon,
+.pc-button .ikonli-font-icon {
+    -fx-icon-color: white;
+    -fx-icon-size: 15px;
+}
+
+.button:hover,
+.pc-button:hover {
+    -fx-background-color: -pc-brand-dark;
+}
+
+.pc-button-secondary,
+.button.secondary {
+    -fx-background-color: #efe5dc;
+    -fx-text-fill: -pc-ink;
+}
+
+.pc-button-secondary .ikonli-font-icon {
+    -fx-icon-color: -pc-ink;
+}
+
+.pc-button-secondary:hover {
+    -fx-background-color: #e4d4c4;
+}
+
+.pc-button-danger,
+.danger {
+    -fx-background-color: -pc-danger;
+    -fx-text-fill: white;
+}
+
+.pc-button-danger:hover,
+.danger:hover {
+    -fx-background-color: #932828;
+}
+
+.pc-icon-button {
+    -fx-min-width: 36px;
+    -fx-pref-width: 36px;
+    -fx-min-height: 36px;
+    -fx-pref-height: 36px;
+    -fx-padding: 0;
+}
+
+.text-field,
+.password-field,
+.text-area,
+.combo-box-base,
+.pc-input,
+.pc-text-area,
+.pc-combo {
+    -fx-background-radius: 7px;
+    -fx-border-radius: 7px;
+    -fx-background-color: white;
+    -fx-border-color: -pc-line;
+    -fx-border-width: 1px;
+    -fx-padding: 8px 10px;
+    -fx-prompt-text-fill: #a3978c;
+}
+
+.text-area .content {
+    -fx-background-color: white;
+    -fx-background-radius: 7px;
+}
+
+.text-field:focused,
+.password-field:focused,
+.text-area:focused,
+.combo-box-base:focused {
+    -fx-border-color: -pc-focus;
+    -fx-effect: dropshadow(gaussian, rgba(14, 116, 144, 0.24), 8, 0.2, 0, 0);
+}
+
+.check-box {
+    -fx-text-fill: -pc-muted;
+    -fx-font-size: 13px;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -pc-brand;
+    -fx-border-color: -pc-brand;
+}
+
+.list-view,
+.pc-list {
+    -fx-background-color: -pc-panel-strong;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: -pc-line;
+    -fx-padding: 5px;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 7px;
+    -fx-padding: 10px;
+    -fx-text-fill: -pc-ink;
+}
+
+.list-cell:hover {
+    -fx-background-color: #f6eee7;
+}
+
+.list-cell:selected {
+    -fx-background-color: #d9eef3;
+    -fx-text-fill: -pc-ink;
+}
+
+.list-cell:unread {
+    -fx-font-weight: bold;
+}
+
+.list-cell:flagged {
+    -fx-background-color: -pc-danger-soft;
+}
+
+.pc-thread-list {
+    -fx-pref-width: 210px;
+}
+
+.pc-post-cell-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-ink;
+}
+
+.pc-post-cell-meta {
+    -fx-font-size: 12px;
+    -fx-text-fill: -pc-muted;
+}
+
+.pc-post-cell-hidden {
+    -fx-text-fill: -pc-danger;
+}
+
+.pc-filter-bar {
+    -fx-spacing: 12px;
+    -fx-alignment: center-left;
+}
+
+.pc-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.pc-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.pc-reply-cell {
+    -fx-spacing: 10px;
+    -fx-padding: 12px;
+    -fx-background-color: -pc-panel-strong;
+    -fx-background-radius: 8px;
+    -fx-border-color: -pc-line;
+    -fx-border-radius: 8px;
+}
+
+.pc-reply-cell-unread {
+    -fx-border-color: -pc-accent;
+}
+
+.pc-reply-cell-flagged {
+    -fx-background-color: -pc-danger-soft;
+    -fx-border-color: #f2aaa1;
+}
+
+.pc-stat {
+    -fx-background-color: #f6eee7;
+    -fx-background-radius: 8px;
+    -fx-padding: 14px;
+}
+
+.pc-stat-value {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-brand-dark;
+}
+
+.pc-stat-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -pc-muted;
+}
+
+.separator *.line {
+    -fx-border-color: -pc-line;
+}

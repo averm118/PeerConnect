@@ -23,36 +23,27 @@ public class ControllerDeleteUser {
     protected static void repaintTheWindow() {
         ViewDeleteUser.theRootPane.getChildren().clear();
 
-        if (ViewDeleteUser.theSelectedUser.compareTo("<Select a User>") == 0) {
+        if (ViewDeleteUser.theSelectedUser == null ||
+                ViewDeleteUser.theSelectedUser.compareTo("<Select a User>") == 0) {
             ViewDeleteUser.theRootPane.getChildren().addAll(
-                    ViewDeleteUser.label_PageTitle,
-                    ViewDeleteUser.label_UserDetails,
-                    ViewDeleteUser.label_SelectUser,
-                    ViewDeleteUser.combobox_SelectUser,
-                    ViewDeleteUser.line_Separator1,
-                    ViewDeleteUser.button_Return,
-                    ViewDeleteUser.button_Logout,
-                    ViewDeleteUser.button_Quit
+                    ViewDeleteUser.pageCard,
+                    ViewDeleteUser.selectionCard,
+                    ViewDeleteUser.footer
             );
         }
         else {
             ViewDeleteUser.theRootPane.getChildren().addAll(
-                    ViewDeleteUser.label_PageTitle,
-                    ViewDeleteUser.label_UserDetails,
-                    ViewDeleteUser.label_SelectUser,
-                    ViewDeleteUser.combobox_SelectUser,
-                    ViewDeleteUser.label_ConfirmDelete,
-                    ViewDeleteUser.button_DeleteUser,
-                    ViewDeleteUser.line_Separator1,
-                    ViewDeleteUser.button_Return,
-                    ViewDeleteUser.button_Logout,
-                    ViewDeleteUser.button_Quit
+                    ViewDeleteUser.pageCard,
+                    ViewDeleteUser.selectionCard,
+                    ViewDeleteUser.confirmCard,
+                    ViewDeleteUser.footer
             );
         }
 
-        ViewDeleteUser.theStage.setTitle("Delete User Page");
-        ViewDeleteUser.theStage.setScene(ViewDeleteUser.theDeleteUserScene);
-        ViewDeleteUser.theStage.show();
+        guiCommon.PeerConnectShell.show(
+                ViewDeleteUser.theStage,
+                ViewDeleteUser.theDeleteUserScene,
+                "PeerConnect: Delete User");
     }
 
     //function for deleting user 

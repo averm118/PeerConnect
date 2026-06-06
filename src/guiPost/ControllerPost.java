@@ -101,7 +101,9 @@ public class ControllerPost{
     	area.setText(text);
     	root.getChildren().add(area);
     	
-    	popup.setScene(new Scene(root, 450, 300));
+        Scene scene = new Scene(root, 450, 300);
+        guiCommon.PeerConnectTheme.attach(scene);
+        popup.setScene(scene);
     	popup.show();
     	
     	ViewPost.populatePost();
@@ -171,7 +173,9 @@ public class ControllerPost{
 
 	    root.getChildren().addAll(area, submit);
 
-	    popup.setScene(new Scene(root, 400, 250));
+	    Scene scene = new Scene(root, 400, 250);
+	    guiCommon.PeerConnectTheme.attach(scene);
+	    popup.setScene(scene);
 	    popup.show();
 	}
 	
@@ -227,7 +231,9 @@ public class ControllerPost{
 
 	    root.getChildren().addAll(area, buttonRow);
 
-	    popup.setScene(new Scene(root, 400, 250));
+	    Scene scene = new Scene(root, 400, 250);
+	    guiCommon.PeerConnectTheme.attach(scene);
+	    popup.setScene(scene);
 	    popup.show();
 
 	}
@@ -362,7 +368,9 @@ public class ControllerPost{
     	area.setText(text);
     	root.getChildren().add(area);
     	
-    	popup.setScene(new Scene(root, 450, 300));
+        Scene scene = new Scene(root, 450, 300);
+        guiCommon.PeerConnectTheme.attach(scene);
+        popup.setScene(scene);
     	popup.show();
     	
     	ViewPost.populatePost();

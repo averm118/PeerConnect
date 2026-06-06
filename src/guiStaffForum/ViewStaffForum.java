@@ -4,12 +4,17 @@ import java.util.List;
 
 import applicationMain.FoundationsMain;
 import database.Database;
+import database.FeedbackDatabase;
 import database.PostDatabase;
 import database.ReplyDatabase;
-import database.FeedbackDatabase;
 import entityClasses.Post;
 import entityClasses.User;
+import guiCommon.ActionSpec;
+import guiCommon.PeerConnectShell;
+import guiCommon.ScreenSpec;
+import guiCommon.UiFactory;
 import javafx.collections.FXCollections;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -17,321 +22,245 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-/**
- * This class displays the forum page.
- *
- * @author Thinh Tang, Stuart King, Aditya Verma, Aaron Hazarika
- */
-public class ViewStaffForum {
 
-	private static double width = FoundationsMain.WINDOW_WIDTH;
-	private static double height = FoundationsMain.WINDOW_HEIGHT;
+public class ViewStaffForum {
+    private static final PseudoClass UNREAD = PseudoClass.getPseudoClass("unread");
+    private static final PseudoClass FLAGGED = PseudoClass.getPseudoClass("flagged");
 
     private static ViewStaffForum theView;
-    /** The post database used by this page. */
     public static PostDatabase thePostDatabase = applicationMain.FoundationsMain.postDatabase;
-    /** The reply database used by this page. */
     public static ReplyDatabase theReplyDatabase = applicationMain.FoundationsMain.replyDatabase;
-    /** The main database used by this page. */
     public static Database theDatabase = applicationMain.FoundationsMain.database;
-    /** The feedback database used by this page. */
     public static FeedbackDatabase theFeedbackDatabase = applicationMain.FoundationsMain.feedbackDatabase;
     protected static Stage theStage;
-    protected static Pane theRootPane;
     protected static User theUser;
-    /** The currently selected post. */
     public static Post thePost;
-    /** The scene for the forum page. */
     public static Scene theForumScene = null;
 
-    // UI elements
     protected static Label label_PageTitle = new Label("Discussion Forum");
     protected static Label label_UserDetails = new Label();
-    
-    protected static CheckBox check_ShowUnread = new CheckBox("Unread Only");
-    protected static CheckBox check_ShowMine = new CheckBox("My Posts Only");
-    protected static CheckBox check_ShowUnreadReplies = new CheckBox("Unread Replies Only");
-    
+    protected static CheckBox check_ShowUnread = new CheckBox("Unread");
+    protected static CheckBox check_ShowMine = new CheckBox("Mine");
+    protected static CheckBox check_ShowUnreadReplies = new CheckBox("Unread replies");
     protected static TextField text_Search = new TextField();
-
     protected static ListView<String> listView_Threads = new ListView<>();
     protected static ListView<String> listView_Posts = new ListView<>();
+    protected static Button button_ManageThreads = UiFactory.action(
+            ActionSpec.of("Manage Threads", "bi-folder2-open", ControllerStaffForum::goToManageThreads,
+                    "pc-button-secondary"));
+    protected static Button button_CreatePost = UiFactory.action(
+            ActionSpec.of("Create Post", "bi-plus", ControllerStaffForum::performCreatePost));
+    protected static Button button_Return = UiFactory.action(
+            ActionSpec.of("Return", "bi-arrow-left", ControllerStaffForum::performReturn, "pc-button-secondary"));
+    protected static Button button_Quit = UiFactory.action(
+            ActionSpec.of("Quit", "bi-x", ControllerStaffForum::performQuit, "pc-button-secondary"));
 
-    protected static Button button_ManageThreads = new Button("Manage");
-    protected static Button button_CreatePost = new Button("Create Post");
-    protected static Button button_Return = new Button("Return");
-    protected static Button button_Quit = new Button("Quit");
-    
-    
-    /**
-     * This method displays the forum page.
-     *
-     * @param ps the stage used to show the page
-     * @param user the current user
-     */
     public static void displayStaffForum(Stage ps, User user) {
-
         theStage = ps;
         theUser = user;
-
         text_Search.clear();
-        
-        if (theView == null) theView = new ViewStaffForum();
+
+        if (theView == null) {
+            theView = new ViewStaffForum();
+        }
 
         populateThreadList();
         populatePostList("ALL");
-
-        theStage.setScene(theForumScene);
-        theStage.show();
+        PeerConnectShell.show(theStage, theForumScene, "PeerConnect: Staff Forum");
     }
-    
-    /**
-     * This constructor creates the forum view.
-     */
+
     public ViewStaffForum() {
+        label_PageTitle.getStyleClass().add("pc-heading");
+        label_UserDetails.getStyleClass().add("pc-body");
+        UiFactory.prepareInput(text_Search, "Search titles...");
+        UiFactory.prepareList(listView_Threads, "Discussion threads");
+        UiFactory.prepareList(listView_Posts, "Posts");
+        listView_Threads.getStyleClass().add("pc-thread-list");
 
-        theRootPane = new Pane();
-        theForumScene = new Scene(theRootPane, width, height);
+        check_ShowUnread.setOnAction(_ -> refreshFilteredPosts());
+        check_ShowMine.setOnAction(_ -> refreshFilteredPosts());
+        check_ShowUnreadReplies.setOnAction(_ -> refreshFilteredPosts());
+        text_Search.textProperty().addListener((_, _, _) -> refreshFilteredPosts());
 
-        //Title
-        label_PageTitle.setFont(Font.font("Arial", 28));
-        label_PageTitle.setMinWidth(width);
-        label_PageTitle.setAlignment(Pos.CENTER);
-        label_PageTitle.setLayoutX(0);
-        label_PageTitle.setLayoutY(20);
-
-        //User details
-        label_UserDetails.setFont(Font.font("Arial", 18));
-        label_UserDetails.setLayoutX(20);
-        label_UserDetails.setLayoutY(20);
-        
-        //check boxes
-        check_ShowUnread.setLayoutX(175);
-        check_ShowUnread.setLayoutY(90);
-        check_ShowUnread.setOnAction((_) -> refreshFilteredPosts());
-
-        check_ShowMine.setLayoutX(275);
-        check_ShowMine.setLayoutY(90);
-        check_ShowMine.setOnAction((_) -> refreshFilteredPosts());
-        
-        check_ShowUnreadReplies.setLayoutX(380);
-        check_ShowUnreadReplies.setLayoutY(90);
-        check_ShowUnreadReplies.setOnAction((_) -> refreshFilteredPosts());
-        
-        //search bar
-        text_Search.setPromptText("Search titles...");
-        text_Search.setLayoutX(175);
-        text_Search.setLayoutY(60);
-        text_Search.setPrefWidth(width-225);
-        text_Search.textProperty().addListener((obs, oldV, newV) -> refreshFilteredPosts());
-
-        //Thread list
-        listView_Threads.setLayoutX(20);
-        listView_Threads.setLayoutY(60);
-        listView_Threads.setPrefSize(125, height-180);
-        listView_Threads.setOnMouseClicked((_) -> {
+        listView_Threads.setOnMouseClicked(_ -> {
             String selected = listView_Threads.getSelectionModel().getSelectedItem();
-            if (selected != null){
+            if (selected != null) {
                 populatePostList(selected);
             }
         });
 
-        //Post list
-        listView_Posts.setLayoutX(175);
-        listView_Posts.setLayoutY(120);
-        listView_Posts.setPrefSize(width-225, height-200);
-        listView_Posts.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 14;");
-        listView_Posts.setCellFactory(lv -> new ListCell<String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
+        listView_Posts.setCellFactory(_ -> new PostCell());
+        listView_Posts.setOnMouseClicked(_ -> openSelectedPost());
 
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                    return;
-                }
+        VBox threadPanel = UiFactory.card(UiFactory.section("Threads", listView_Threads, button_ManageThreads));
+        VBox.setVgrow(listView_Threads, Priority.ALWAYS);
 
-                setText(item);        
-                setWrapText(true);
+        HBox filterBar = new HBox(12, text_Search, check_ShowUnread, check_ShowMine, check_ShowUnreadReplies);
+        filterBar.getStyleClass().add("pc-filter-bar");
+        HBox.setHgrow(text_Search, Priority.ALWAYS);
 
-                String[] lines = item.split("\n");
-                String first = lines[0];
-                String second = lines[1];
-                int start = second.indexOf('[') + 1;
-                int end = second.indexOf(']');
-                int postId = Integer.parseInt(second.substring(start, end));
+        VBox postPanel = UiFactory.card(UiFactory.section("Posts", filterBar, listView_Posts));
+        VBox.setVgrow(listView_Posts, Priority.ALWAYS);
 
-                Post p = thePostDatabase.getPostById(postId);
+        SplitPane split = new SplitPane(threadPanel, postPanel);
+        split.setDividerPositions(0.23);
+        VBox.setVgrow(split, Priority.ALWAYS);
 
-                if (p.getInappropriate() && !theUser.getNewStaff() && !theUser.getUserName().equals(p.getAuthor())) {
-                    first = "[FLAGGED] [This post has been flagged as inappropriate and is hidden.] — " + p.getAuthor();
-                }
+        HBox footer = UiFactory.actions(button_CreatePost, UiFactory.spacer(), button_Return, button_Quit);
+        VBox screen = new VBox(18, UiFactory.card(label_PageTitle, label_UserDetails), split, footer);
+        screen.getStyleClass().add("pc-screen");
+        screen.setAlignment(Pos.TOP_CENTER);
+        VBox.setVgrow(split, Priority.ALWAYS);
 
-                setText(first + "\n" + second);
-                setWrapText(true);
-
-                boolean unread = thePostDatabase.isPostUnread(
-                        theUser.getUserName(),
-                        postId);
-                
-                int unreadFeedbackCount = theFeedbackDatabase.getUnreadFeedbackCount(
-                        theUser.getUserName(),
-                        "POST",
-                        postId
-                );
-
-                if (thePostDatabase.getPostById(postId).getAuthor().equals(theUser.getUserName())) {
-                    unread = false; //creator always sees their own post as read
-                }
-
-                if (unread || unreadFeedbackCount > 0) {
-                    setStyle("-fx-font-weight: bold;");
-                } else {
-                    setStyle("-fx-font-weight: normal;");
-                }
-            }
-        });
-        
-        //open posts on click
-        listView_Posts.setOnMouseClicked((_) -> {
-            String selected = listView_Posts.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-
-                String[] lines = selected.split("\n");
-                String second = lines[1];
-                int start = second.indexOf('[') + 1;
-                int end = second.indexOf(']');
-                int id = Integer.parseInt(second.substring(start, end));
-
-                Post selectedPost = thePostDatabase.getPostById(id);
-
-                if (selectedPost.getInappropriate() && !theUser.getNewStaff() && !theUser.getUserName().equals(selectedPost.getAuthor())) {
-                    return;
-                }
-
-                //refresh list to remove bold
-                String currentThread = listView_Threads.getSelectionModel().getSelectedItem();
-                populatePostList(currentThread);
-
-                //open post view
-                guiPost.ViewPost.displayPost(
-                        ViewStaffForum.theStage,
-                        ViewStaffForum.theUser,
-                        selectedPost
-                );
-            }
-        });
-
-        //Buttons
-        setupButton(button_ManageThreads, 30, height-110);
-        button_ManageThreads.setPrefSize(100, 35);
-        button_ManageThreads.setMinSize(10, 10);
-        button_ManageThreads.setOnAction((_) -> ControllerStaffForum.goToManageThreads());
-        
-        setupButton(button_CreatePost, width - 250, 20);
-        button_CreatePost.setOnAction((_) -> ControllerStaffForum.performCreatePost());
-
-        setupButton(button_Return, 300, height - 50);
-        button_Return.setOnAction((_) -> ControllerStaffForum.performReturn());
-
-        setupButton(button_Quit, 580, height - 50);
-        button_Quit.setOnAction((_) -> ControllerStaffForum.performQuit());
-
-        theRootPane.getChildren().addAll(
-                label_PageTitle,
-                label_UserDetails,
-                listView_Threads,
-                listView_Posts,
-                button_ManageThreads,
-                button_CreatePost,
-                button_Return,
-                button_Quit,
-                check_ShowUnread, 
-                check_ShowMine,
-                check_ShowUnreadReplies,
-                text_Search
-        );
+        theForumScene = PeerConnectShell.scene(
+                ScreenSpec.of("Staff Forum", "Moderate posts, manage threads, and keep feedback visible.",
+                        theUser, "Staff", "bi-chat-square-text"),
+                screen);
     }
 
-    private static void setupButton(Button b, double x, double y) {
-        b.setFont(Font.font("Dialog", 18));
-        b.setMinWidth(210);
-        b.setLayoutX(x);
-        b.setLayoutY(y);
-    }
-    /**
-     * This method populates the thread list.
-     */
     public static void populateThreadList() {
         List<String> threads = thePostDatabase.getThreadList();
         listView_Threads.setItems(FXCollections.observableArrayList(threads));
-        label_UserDetails.setText("Logged in as: " + theUser.getUserName());
+        label_UserDetails.setText("Logged in as " + theUser.getUserName());
     }
-    
-    /**
-     * This method populates the post list for a thread.
-     *
-     * @param threadName the name of the selected thread
-     */
+
     public static void populatePostList(String threadName) {
         if (threadName == null) {
             threadName = "ALL";
         }
-        //get posts from thread
         List<String> posts = thePostDatabase.getPostTitlesByThread(threadName, theUser.getUserName());
         String search = text_Search.getText().trim().toLowerCase();
-        		
+
         List<String> filtered = posts.stream()
                 .filter(item -> {
-
-                    //extract post ID
-                    String[] lines = item.split("\n");
-                    String second = lines[1];
-                    int start = second.indexOf('[') + 1;
-                    int end = second.indexOf(']');
-                    int postId = Integer.parseInt(second.substring(start, end));
-
+                    int postId = parsePostId(item);
                     Post p = thePostDatabase.getPostById(postId);
-
-                    //filter 1: unread only
-                    if(check_ShowUnread.isSelected()) {
+                    if (p == null) {
+                        return false;
+                    }
+                    if (check_ShowUnread.isSelected()) {
                         boolean unread = thePostDatabase.isPostUnread(theUser.getUserName(), postId);
-                        if(p.getAuthor().equals(theUser.getUserName())) unread = false;
-                        if(!unread) return false;
+                        if (p.getAuthor().equals(theUser.getUserName())) {
+                            unread = false;
+                        }
+                        if (!unread) {
+                            return false;
+                        }
                     }
-
-                    //filter 2: user's posts 
-                    if(check_ShowMine.isSelected()) {
-                        if(!p.getAuthor().equals(theUser.getUserName())) return false;
+                    if (check_ShowMine.isSelected() && !p.getAuthor().equals(theUser.getUserName())) {
+                        return false;
                     }
-                    
-                    //filter 3: unread replies only
-                    if(check_ShowUnreadReplies.isSelected()) {
-                    	if(theReplyDatabase.getUnreadReplyCount(theUser.getUserName(), postId) == 0) {
-                    		return false;
-                    	}
+                    if (check_ShowUnreadReplies.isSelected()
+                            && theReplyDatabase.getUnreadReplyCount(theUser.getUserName(), postId) == 0) {
+                        return false;
                     }
-                    
-                    //filter 4: keyword search
-                    if(!search.isEmpty()) {
-                        if(!p.getTitle().toLowerCase().contains(search)) return false;
-                    }
-
-                    return true;
+                    return search.isEmpty() || p.getTitle().toLowerCase().contains(search);
                 })
                 .toList();
-        
-        //display posts
+
         listView_Posts.setItems(FXCollections.observableArrayList(filtered));
     }
-    
+
     private static void refreshFilteredPosts() {
         String currentThread = listView_Threads.getSelectionModel().getSelectedItem();
         populatePostList(currentThread);
+    }
+
+    private static void openSelectedPost() {
+        String selected = listView_Posts.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        int id = parsePostId(selected);
+        Post selectedPost = thePostDatabase.getPostById(id);
+        if (selectedPost == null) {
+            return;
+        }
+        if (selectedPost.getInappropriate()
+                && !theUser.getNewStaff()
+                && !theUser.getUserName().equals(selectedPost.getAuthor())) {
+            return;
+        }
+
+        String currentThread = listView_Threads.getSelectionModel().getSelectedItem();
+        populatePostList(currentThread);
+        guiPost.ViewPost.displayPost(ViewStaffForum.theStage, ViewStaffForum.theUser, selectedPost);
+    }
+
+    private static int parsePostId(String item) {
+        String[] lines = item.split("\n");
+        String second = lines.length > 1 ? lines[1] : item;
+        int start = second.indexOf('[') + 1;
+        int end = second.indexOf(']');
+        return Integer.parseInt(second.substring(start, end));
+    }
+
+    private static class PostCell extends ListCell<String> {
+        @Override
+        protected void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setGraphic(null);
+                pseudoClassStateChanged(UNREAD, false);
+                pseudoClassStateChanged(FLAGGED, false);
+                return;
+            }
+
+            int postId = parsePostId(item);
+            Post p = thePostDatabase.getPostById(postId);
+            if (p == null) {
+                setText(item);
+                return;
+            }
+
+            boolean hiddenFlagged = p.getInappropriate()
+                    && !theUser.getNewStaff()
+                    && !theUser.getUserName().equals(p.getAuthor());
+            boolean unread = thePostDatabase.isPostUnread(theUser.getUserName(), postId);
+            if (p.getAuthor().equals(theUser.getUserName())) {
+                unread = false;
+            }
+            int unreadFeedbackCount = theFeedbackDatabase.getUnreadFeedbackCount(theUser.getUserName(), "POST", postId);
+            int unreadReplyCount = theReplyDatabase.getUnreadReplyCount(theUser.getUserName(), postId);
+
+            Label title = new Label(hiddenFlagged
+                    ? "Flagged post hidden"
+                    : (p.getInappropriate() ? "[FLAGGED] " : "") + p.getTitle());
+            title.getStyleClass().add("pc-post-cell-title");
+            if (hiddenFlagged) {
+                title.getStyleClass().add("pc-post-cell-hidden");
+            }
+
+            Label meta = new Label("by " + p.getAuthor() + " in " + p.getThread() + " | Post #" + postId);
+            meta.getStyleClass().add("pc-post-cell-meta");
+
+            HBox badges = new HBox(6);
+            if (unread) {
+                badges.getChildren().add(UiFactory.badge("Unread", "pc-badge-unread"));
+            }
+            if (unreadReplyCount > 0) {
+                badges.getChildren().add(UiFactory.badge(unreadReplyCount + " replies", "pc-badge-unread"));
+            }
+            if (unreadFeedbackCount > 0) {
+                badges.getChildren().add(UiFactory.badge(unreadFeedbackCount + " feedback", "pc-badge-unread"));
+            }
+            if (p.getInappropriate()) {
+                badges.getChildren().add(UiFactory.badge("Flagged", "pc-badge-flagged"));
+            }
+
+            VBox cell = new VBox(6, title, meta, badges);
+            cell.setFillWidth(true);
+            setText(null);
+            setGraphic(cell);
+            pseudoClassStateChanged(UNREAD, unread || unreadFeedbackCount > 0 || unreadReplyCount > 0);
+            pseudoClassStateChanged(FLAGGED, p.getInappropriate());
+        }
     }
 }

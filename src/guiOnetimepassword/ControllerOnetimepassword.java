@@ -2,7 +2,6 @@ package guiOnetimepassword;
 
 
 import database.Database;
-import guiDeleteUser.ViewDeleteUser;
 import javafx.scene.control.Alert;
 
 public class ControllerOnetimepassword {
@@ -22,36 +21,27 @@ public class ControllerOnetimepassword {
     protected static void repaintTheWindow() {
         ViewOnetimepassword.theRootPane.getChildren().clear();
 
-        if (ViewOnetimepassword.theSelectedUser.compareTo("<Select a User>") == 0) {
+        if (ViewOnetimepassword.theSelectedUser == null ||
+                ViewOnetimepassword.theSelectedUser.compareTo("<Select a User>") == 0) {
             ViewOnetimepassword.theRootPane.getChildren().addAll(
-                    ViewOnetimepassword.label_PageTitle,
-                    ViewOnetimepassword.label_UserDetails,
-                    ViewOnetimepassword.label_SelectUser,
-                    ViewOnetimepassword.combobox_SelectUser,
-                    ViewOnetimepassword.line_Separator1,
-                    ViewOnetimepassword.button_Return,
-                    ViewOnetimepassword.button_Logout,
-                    ViewOnetimepassword.button_Quit
+                    ViewOnetimepassword.pageCard,
+                    ViewOnetimepassword.selectionCard,
+                    ViewOnetimepassword.footer
             );
         }
         else {
             ViewOnetimepassword.theRootPane.getChildren().addAll(
-                    ViewOnetimepassword.label_PageTitle,
-                    ViewOnetimepassword.label_UserDetails,
-                    ViewOnetimepassword.label_SelectUser,
-                    ViewOnetimepassword.combobox_SelectUser,
-                    ViewOnetimepassword.label_ConfirmOTP,
-                    ViewOnetimepassword.button_SendOTP,
-                    ViewOnetimepassword.line_Separator1,
-                    ViewOnetimepassword.button_Return,
-                    ViewOnetimepassword.button_Logout,
-                    ViewOnetimepassword.button_Quit
+                    ViewOnetimepassword.pageCard,
+                    ViewOnetimepassword.selectionCard,
+                    ViewOnetimepassword.confirmCard,
+                    ViewOnetimepassword.footer
             );
         }
 
-        ViewOnetimepassword.theStage.setTitle("send otp to User Page");
-        ViewOnetimepassword.theStage.setScene(ViewOnetimepassword.theOTPScene);
-        ViewOnetimepassword.theStage.show();
+        guiCommon.PeerConnectShell.show(
+                ViewOnetimepassword.theStage,
+                ViewOnetimepassword.theOTPScene,
+                "PeerConnect: One-Time Password");
     }
  
     protected static void performsendOTP() {

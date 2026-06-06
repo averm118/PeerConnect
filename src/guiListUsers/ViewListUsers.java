@@ -1,136 +1,78 @@
 package guiListUsers;
 
 import java.util.List;
+
+import database.Database;
+import entityClasses.User;
+import guiCommon.ActionSpec;
+import guiCommon.PeerConnectShell;
+import guiCommon.ScreenSpec;
+import guiCommon.UiFactory;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
-import javafx.stage.Stage;
-import database.Database;
-import entityClasses.User;
 import javafx.scene.control.ListView;
-
-/*******
- * <p> Title: GUIListUsers Class. </p>
- * 
- * <p> Description: The Java/FX-based page for listing all users in database.</p>
- * 
- * <p> Copyright: Lynn Robert Carter © 2025 </p>
- * 
- * @author Lynn Robert Carter
- * 
- * @version 1.00		2025-08-20 Initial version
- *  
- */
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class ViewListUsers {
-	//window dimensions
-    private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-    private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
-
-    //gui instance
     private static ViewListUsers theView;
-    
-    //database reference
     private static Database theDatabase = applicationMain.FoundationsMain.database;
 
-    //more stuff
     protected static Stage theStage;
-    protected static Pane theRootPane;
     protected static User theUser;
-
-    //scene view
     public static Scene theListUsersScene = null;
 
-    //gui elements
     protected static Label label_PageTitle = new Label("List of All Users");
     protected static Label label_UserDetails = new Label();
     protected static ListView<String> listView_Users = new ListView<>();
-    protected static Button button_Return = new Button("Return");
-    protected static Button button_Logout = new Button("Logout");
-    protected static Button button_Quit = new Button("Quit");
-    
-    //main display function
-    public static void displayListUsers(Stage ps, User user){
-    	//stage and user references
+    protected static Button button_Return = UiFactory.action(
+            ActionSpec.of("Return", "bi-arrow-left", ControllerListUsers::performReturn, "pc-button-secondary"));
+    protected static Button button_Logout = UiFactory.action(
+            ActionSpec.of("Logout", "bi-box-arrow-left", ControllerListUsers::performLogout, "pc-button-secondary"));
+    protected static Button button_Quit = UiFactory.action(
+            ActionSpec.of("Quit", "bi-x", ControllerListUsers::performQuit, "pc-button-secondary"));
+
+    public static void displayListUsers(Stage ps, User user) {
         theStage = ps;
         theUser = user;
 
-        //build the gui
-        if (theView == null) theView = new ViewListUsers();
-        listView_Users.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 12;");
+        if (theView == null) {
+            theView = new ViewListUsers();
+        }
 
-        //refresh user list
         populateUserList();
-
-        //display scene
-        theStage.setScene(theListUsersScene);
-        theStage.show();
+        PeerConnectShell.show(theStage, theListUsersScene, "PeerConnect: Users");
     }
 
-    //constructor
-    public ViewListUsers(){
-    	//setup pane and scene
-        theRootPane = new Pane();
-        theListUsersScene = new Scene(theRootPane, width, height);
+    public ViewListUsers() {
+        label_PageTitle.getStyleClass().add("pc-heading");
+        label_UserDetails.getStyleClass().add("pc-body");
+        UiFactory.prepareList(listView_Users, "All users");
 
-        //title stuff
-        label_PageTitle.setFont(Font.font("Arial", 28));
-        label_PageTitle.setMinWidth(width);
-        label_PageTitle.setAlignment(Pos.CENTER);
-        label_PageTitle.setLayoutX(0);
-        label_PageTitle.setLayoutY(20);
+        VBox listCard = UiFactory.card(UiFactory.section("Users", listView_Users));
+        VBox.setVgrow(listView_Users, Priority.ALWAYS);
+        VBox.setVgrow(listCard, Priority.ALWAYS);
 
-        //current user label stuff
-        label_UserDetails.setFont(Font.font("Arial", 18));
-        label_UserDetails.setMinWidth(width);
-        label_UserDetails.setAlignment(Pos.BASELINE_LEFT);
-        label_UserDetails.setLayoutX(20);
-        label_UserDetails.setLayoutY(70);
+        HBox footer = UiFactory.actions(button_Return, UiFactory.spacer(), button_Logout, button_Quit);
+        VBox screen = new VBox(18, UiFactory.card(label_PageTitle, label_UserDetails), listCard, footer);
+        screen.getStyleClass().add("pc-screen");
+        screen.setAlignment(Pos.TOP_CENTER);
+        VBox.setVgrow(listCard, Priority.ALWAYS);
 
-        //list stuff
-        listView_Users.setLayoutX(50);
-        listView_Users.setLayoutY(120);
-        listView_Users.setPrefSize(width - 100, height - 250);
-
-        //return button stuff
-        setupButton(button_Return, 20, height - 100);
-        button_Return.setOnAction((_) -> { ControllerListUsers.performReturn(); });
-
-        //logout button stuff
-        setupButton(button_Logout, 300, height - 100);
-        button_Logout.setOnAction((_) -> { ControllerListUsers.performLogout(); });
-
-        //setup button shit
-        setupButton(button_Quit, 580, height - 100);
-        button_Quit.setOnAction((_) -> { ControllerListUsers.performQuit(); });
-
-        //add stuff to pane
-        theRootPane.getChildren().addAll(
-            label_PageTitle,
-            label_UserDetails,
-            listView_Users,
-            button_Return,
-            button_Logout,
-            button_Quit
-        );
+        theListUsersScene = PeerConnectShell.scene(
+                ScreenSpec.of("Users", "Review every registered PeerConnect account.",
+                        theUser, "Admin", "bi-people"),
+                screen);
     }
 
-    //function for populating user list
-    private static void populateUserList(){
+    private static void populateUserList() {
         List<String> userList = theDatabase.getUserListEnriched();
         listView_Users.setItems(FXCollections.observableArrayList(userList));
-        label_UserDetails.setText("Logged in as: " + theUser.getUserName());
-    }
-
-    //function for button styling
-    private static void setupButton(Button b, double x, double y){
-        b.setFont(Font.font("Dialog", 18));
-        b.setMinWidth(210);
-        b.setLayoutX(x);
-        b.setLayoutY(y);
+        label_UserDetails.setText("Logged in as " + theUser.getUserName());
     }
 }

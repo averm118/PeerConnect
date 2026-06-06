@@ -9,7 +9,10 @@ module FoundationsF25 {
 	requires javafx.graphics;
 	requires javafx.fxml;
 	requires java.sql;
-	requires org.junit.jupiter.api;   
+	requires com.h2database;
+	requires atlantafx.base;
+	requires org.kordamp.ikonli.javafx;
+	requires org.kordamp.ikonli.bootstrapicons;
 	
 	opens applicationMain to javafx.graphics, javafx.fxml;
 }

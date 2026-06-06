@@ -3,10 +3,7 @@ package guiAddRemoveRoles;
 import database.Database;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 
 /*******
  * <p> Title: ControllerAddRemoveRoles Class. </p>
@@ -62,6 +59,11 @@ public class ControllerAddRemoveRoles {
 	protected static void doSelectUser() {
 		ViewAddRemoveRoles.theSelectedUser = 
 				(String) ViewAddRemoveRoles.combobox_SelectUser.getValue();
+		if (ViewAddRemoveRoles.theSelectedUser == null ||
+				ViewAddRemoveRoles.theSelectedUser.compareTo("<Select a User>") == 0) {
+			repaintTheWindow();
+			return;
+		}
 		theDatabase.getUserAccountDetails(ViewAddRemoveRoles.theSelectedUser);
 		setupSelectedUser();
 	}
@@ -79,41 +81,30 @@ public class ControllerAddRemoveRoles {
 		ViewAddRemoveRoles.theRootPane.getChildren().clear();
 		
 		// Defermine which of the two views to show to the user
-		if (ViewAddRemoveRoles.theSelectedUser.compareTo("<Select a User>") == 0) {
+		if (ViewAddRemoveRoles.theSelectedUser == null ||
+				ViewAddRemoveRoles.theSelectedUser.compareTo("<Select a User>") == 0) {
 			// Only show the request to select a user to be updated and the ComboBox
 			ViewAddRemoveRoles.theRootPane.getChildren().addAll(
-					ViewAddRemoveRoles.label_PageTitle, ViewAddRemoveRoles.label_UserDetails, 
-					ViewAddRemoveRoles.button_UpdateThisUser, ViewAddRemoveRoles.line_Separator1,
-					ViewAddRemoveRoles.label_SelectUser, ViewAddRemoveRoles.combobox_SelectUser, 
-					ViewAddRemoveRoles.line_Separator4, ViewAddRemoveRoles.button_Return,
-					ViewAddRemoveRoles.button_Logout, ViewAddRemoveRoles.button_Quit);
+					ViewAddRemoveRoles.pageCard,
+					ViewAddRemoveRoles.selectionCard,
+					ViewAddRemoveRoles.footer);
 		}
 		else {
 			// Show all the fields as there is a selected user (as opposed to the prompt)
 			ViewAddRemoveRoles.theRootPane.getChildren().addAll(
-					ViewAddRemoveRoles.label_PageTitle, ViewAddRemoveRoles.label_UserDetails,
-					ViewAddRemoveRoles.button_UpdateThisUser, ViewAddRemoveRoles.line_Separator1,
-					ViewAddRemoveRoles.label_SelectUser,
-					ViewAddRemoveRoles.combobox_SelectUser, 
-					ViewAddRemoveRoles.label_CurrentRoles,
-					ViewAddRemoveRoles.label_SelectRoleToBeAdded,
-					ViewAddRemoveRoles.combobox_SelectRoleToAdd,
-					ViewAddRemoveRoles.button_AddRole,
-					ViewAddRemoveRoles.label_SelectRoleToBeRemoved,
-					ViewAddRemoveRoles.combobox_SelectRoleToRemove,
-					ViewAddRemoveRoles.button_RemoveRole,
-					ViewAddRemoveRoles.line_Separator4, 
-					ViewAddRemoveRoles.button_Return,
-					ViewAddRemoveRoles.button_Logout,
-					ViewAddRemoveRoles.button_Quit);
+					ViewAddRemoveRoles.pageCard,
+					ViewAddRemoveRoles.selectionCard,
+					ViewAddRemoveRoles.roleCard,
+					ViewAddRemoveRoles.footer);
 		}
 		
 		// Add the list of widgets to the stage and show it
 		
 		// Set the title for the window
-		ViewAddRemoveRoles.theStage.setTitle("CSE 360 Foundation Code: Admin Opertaions Page");
-		ViewAddRemoveRoles.theStage.setScene(ViewAddRemoveRoles.theAddRemoveRolesScene);
-		ViewAddRemoveRoles.theStage.show();
+		guiCommon.PeerConnectShell.show(
+				ViewAddRemoveRoles.theStage,
+				ViewAddRemoveRoles.theAddRemoveRolesScene,
+				"PeerConnect: Manage Roles");
 	}
 	
 	
@@ -181,8 +172,10 @@ public class ControllerAddRemoveRoles {
 		}
 
 		// Given the above actions, populate the related widgets with the new values
-		ViewAddRemoveRoles.label_CurrentRoles.setText("This user's current roles: " + 
-				theCurrentRoles);		
+		if (theCurrentRoles.isBlank()) {
+			theCurrentRoles = "No roles assigned";
+		}
+		ViewAddRemoveRoles.label_CurrentRoles.setText("Current roles: " + theCurrentRoles);
 		ViewAddRemoveRoles.setupComboBoxUI(ViewAddRemoveRoles.combobox_SelectRoleToAdd, "Dialog",
 				16, 150, 280, 205);
 		ViewAddRemoveRoles.combobox_SelectRoleToAdd.setItems(FXCollections.
@@ -216,14 +209,12 @@ public class ControllerAddRemoveRoles {
 				(String) ViewAddRemoveRoles.combobox_SelectRoleToAdd.getValue();
 		
 		// If the selection is the list header (e.g., "<Select a role>") don't do anything
-		if (ViewAddRemoveRoles.theAddRole.compareTo("<Select a role>") != 0) {
+		if (ViewAddRemoveRoles.theAddRole != null &&
+				ViewAddRemoveRoles.theAddRole.compareTo("<Select a role>") != 0) {
 			
 			// If an actual role was selected, update the database entry for that user for the role
 			if (theDatabase.updateUserRole(ViewAddRemoveRoles.theSelectedUser,
 					ViewAddRemoveRoles.theAddRole, "true") ) {
-				ViewAddRemoveRoles.combobox_SelectRoleToAdd = new ComboBox <String>();
-				ViewAddRemoveRoles.combobox_SelectRoleToAdd.setItems(FXCollections.
-					observableArrayList(ViewAddRemoveRoles.addList));
 				ViewAddRemoveRoles.combobox_SelectRoleToAdd.getSelectionModel().clearAndSelect(0);		
 				setupSelectedUser();
 			}
@@ -245,7 +236,8 @@ public class ControllerAddRemoveRoles {
 				combobox_SelectRoleToRemove.getValue();
 		
 		// If the selection is the list header (e.g., "<Select a role>") don't do anything
-		if (ViewAddRemoveRoles.theRemoveRole.compareTo("<Select a role>") == 0) return;
+		if (ViewAddRemoveRoles.theRemoveRole == null ||
+				ViewAddRemoveRoles.theRemoveRole.compareTo("<Select a role>") == 0) return;
 		
 		String selectedUser = ViewAddRemoveRoles.theSelectedUser;
 		String loggedUser = ViewAddRemoveRoles.theUser.getUserName();
@@ -264,9 +256,6 @@ public class ControllerAddRemoveRoles {
 	    // If an actual role was selected, update the database entry for that user for the role
 		if (theDatabase.updateUserRole(ViewAddRemoveRoles.theSelectedUser, 
 			ViewAddRemoveRoles.theRemoveRole, "false") ) {
-			ViewAddRemoveRoles.combobox_SelectRoleToRemove = new ComboBox <String>();
-			ViewAddRemoveRoles.combobox_SelectRoleToRemove.setItems(FXCollections.
-				observableArrayList(ViewAddRemoveRoles.addList));
 			ViewAddRemoveRoles.combobox_SelectRoleToRemove.getSelectionModel().
 			clearAndSelect(0);		
 			setupSelectedUser();

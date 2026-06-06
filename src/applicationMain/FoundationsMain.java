@@ -5,6 +5,7 @@ import database.Database;
 import database.PostDatabase;
 import database.ReplyDatabase;
 import database.FeedbackDatabase;
+import guiCommon.PeerConnectTheme;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
@@ -71,8 +72,10 @@ public class FoundationsMain extends Application {
 	
 	// These are the application values required by the user interface.  All the other classes
 	// access these constants to provide a uniform window size.	
-	public final static double WINDOW_WIDTH = 800;
-	public final static double WINDOW_HEIGHT = 600;
+	public final static double WINDOW_WIDTH = 1180;
+	public final static double WINDOW_HEIGHT = 760;
+	public final static double MIN_WINDOW_WIDTH = 1024;
+	public final static double MIN_WINDOW_HEIGHT = 680;
 
 	// These attributes establish the database and the fixed reference to it for the rest of the
 	// application so we do not need to keep passing the reference in parameters to the rest of the
@@ -87,6 +90,10 @@ public class FoundationsMain extends Application {
 												// Role 0 is the admin role number
 	@Override
 	public void start(Stage theStage) {
+		PeerConnectTheme.install();
+		theStage.setMinWidth(MIN_WINDOW_WIDTH);
+		theStage.setMinHeight(MIN_WINDOW_HEIGHT);
+		theStage.setResizable(true);
 		
 		// Connect to the in-memory database
 		try {

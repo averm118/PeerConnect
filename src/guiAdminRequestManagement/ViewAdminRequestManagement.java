@@ -7,6 +7,10 @@ import java.util.Map;
 import database.Database;
 import entityClasses.AdminRequest;
 import entityClasses.User;
+import guiCommon.ActionSpec;
+import guiCommon.PeerConnectShell;
+import guiCommon.ScreenSpec;
+import guiCommon.UiFactory;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,31 +19,22 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
  * Shared request-management page used by staff and admins.
  *
- * The left list shows open requests that are shared between staff and admins.
- * The right list shows closed requests maintained by the system. Staff can reopen
- * closed requests and update the description of the reopened request. Admins can
- * close open requests after handling them.
- *
  * @author Thinh Tang, Stuart King, Aditya Verma, Aaron Hazarika
  */
 public class ViewAdminRequestManagement {
-
-    private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-    private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
-
     private static ViewAdminRequestManagement theView;
 
     public static Database theDatabase = applicationMain.FoundationsMain.database;
 
     protected static Stage theStage;
-    protected static Pane theRootPane;
     protected static User theUser;
     public static Scene theScene = null;
 
@@ -57,12 +52,29 @@ public class ViewAdminRequestManagement {
     protected static ListView<String> listView_ClosedRequests = new ListView<>();
     protected static TextArea text_RequestDescription = new TextArea();
 
-    protected static Button button_CreateRequest = new Button("Create Request");
-    protected static Button button_CloseRequest = new Button("Close Selected Open Request");
-    protected static Button button_ReopenRequest = new Button("Reopen Selected Closed Request");
-    protected static Button button_UpdateReopenedRequest = new Button("Update Reopened Request");
-    protected static Button button_Return = new Button("Return");
-    protected static Button button_Quit = new Button("Quit");
+    protected static Button button_CreateRequest = UiFactory.action(
+            ActionSpec.of("Create Request", "bi-plus",
+                    ControllerAdminRequestManagement::performCreateRequest));
+    protected static Button button_CloseRequest = UiFactory.action(
+            ActionSpec.of("Close Open", "bi-check2-circle",
+                    ControllerAdminRequestManagement::performCloseRequest,
+                    "pc-button-danger"));
+    protected static Button button_ReopenRequest = UiFactory.action(
+            ActionSpec.of("Reopen Closed", "bi-arrow-counterclockwise",
+                    ControllerAdminRequestManagement::performReopenRequest,
+                    "pc-button-secondary"));
+    protected static Button button_UpdateReopenedRequest = UiFactory.action(
+            ActionSpec.of("Update Reopened", "bi-pencil-square",
+                    ControllerAdminRequestManagement::performUpdateReopenedRequest,
+                    "pc-button-secondary"));
+    protected static Button button_Return = UiFactory.action(
+            ActionSpec.of("Return", "bi-arrow-left",
+                    ControllerAdminRequestManagement::performReturn,
+                    "pc-button-secondary"));
+    protected static Button button_Quit = UiFactory.action(
+            ActionSpec.of("Quit", "bi-x",
+                    ControllerAdminRequestManagement::performQuit,
+                    "pc-button-secondary"));
 
     /** Displays this page. */
     public static void displayAdminRequestManagement(Stage ps, User user) {
@@ -73,43 +85,34 @@ public class ViewAdminRequestManagement {
             theView = new ViewAdminRequestManagement();
         }
 
-        label_UserDetails.setText("Logged in as: " + theUser.getUserName());
+        label_UserDetails.setText("Logged in as " + theUser.getUserName());
         refreshLists();
         clearEditor();
         configureButtonsForRole();
 
-        theStage.setTitle("CSE 360 Foundations: Admin Request Management");
-        theStage.setScene(theScene);
-        theStage.show();
+        PeerConnectShell.show(theStage, theScene, "PeerConnect: Admin Requests");
     }
 
     /** Singleton constructor. */
     private ViewAdminRequestManagement() {
-        theRootPane = new Pane();
-        theScene = new Scene(theRootPane, width, height);
+        label_PageTitle.getStyleClass().add("pc-heading");
+        label_UserDetails.getStyleClass().add("pc-body");
+        label_OpenRequests.getStyleClass().add("pc-section-title");
+        label_ClosedRequests.getStyleClass().add("pc-section-title");
+        label_Editor.getStyleClass().add("pc-section-title");
+        label_LinkInfo.getStyleClass().add("pc-caption");
 
-        setupLabel(label_PageTitle, 28, width, Pos.CENTER, 0, 10);
-        setupLabel(label_UserDetails, 18, 300, Pos.BASELINE_LEFT, 20, 55);
-        setupLabel(label_OpenRequests, 18, 250, Pos.BASELINE_LEFT, 20, 95);
-        setupLabel(label_ClosedRequests, 18, 250, Pos.BASELINE_LEFT, 420, 95);
-        setupLabel(label_Editor, 18, 350, Pos.BASELINE_LEFT, 20, 360);
-        setupLabel(label_LinkInfo, 16, width - 40, Pos.BASELINE_LEFT, 20, 520);
+        UiFactory.prepareList(listView_OpenRequests, "Open admin requests");
+        UiFactory.prepareList(listView_ClosedRequests, "Closed admin requests");
+        UiFactory.prepareTextArea(text_RequestDescription,
+                "Write a request, closure comment, or reopened-request update.");
 
-        listView_OpenRequests.setLayoutX(20);
-        listView_OpenRequests.setLayoutY(125);
-        listView_OpenRequests.setPrefSize(360, 220);
-        listView_OpenRequests.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 12;");
         listView_OpenRequests.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 listView_ClosedRequests.getSelectionModel().clearSelection();
                 loadSelectedRequestIntoEditor();
             }
         });
-
-        listView_ClosedRequests.setLayoutX(420);
-        listView_ClosedRequests.setLayoutY(125);
-        listView_ClosedRequests.setPrefSize(360, 220);
-        listView_ClosedRequests.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 12;");
         listView_ClosedRequests.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 listView_OpenRequests.getSelectionModel().clearSelection();
@@ -117,37 +120,35 @@ public class ViewAdminRequestManagement {
             }
         });
 
-        text_RequestDescription.setLayoutX(20);
-        text_RequestDescription.setLayoutY(390);
-        text_RequestDescription.setPrefSize(760, 120);
-        text_RequestDescription.setWrapText(true);
+        VBox openColumn = UiFactory.section("Open requests", listView_OpenRequests);
+        VBox closedColumn = UiFactory.section("Closed requests", listView_ClosedRequests);
+        HBox requestColumns = new HBox(18, UiFactory.card(openColumn), UiFactory.card(closedColumn));
+        HBox.setHgrow(requestColumns.getChildren().get(0), Priority.ALWAYS);
+        HBox.setHgrow(requestColumns.getChildren().get(1), Priority.ALWAYS);
+        VBox.setVgrow(listView_OpenRequests, Priority.ALWAYS);
+        VBox.setVgrow(listView_ClosedRequests, Priority.ALWAYS);
 
-        setupButton(button_CreateRequest, 630, 520, 150);
-        button_CreateRequest.setOnAction(e -> ControllerAdminRequestManagement.performCreateRequest());
+        VBox editorCard = UiFactory.card(
+                UiFactory.section("Request workspace", text_RequestDescription),
+                label_LinkInfo,
+                UiFactory.actions(button_CreateRequest, button_ReopenRequest,
+                        button_UpdateReopenedRequest, UiFactory.spacer(), button_CloseRequest));
 
-        setupButton(button_CloseRequest, 20, 555, 200);
-        button_CloseRequest.setOnAction(e -> ControllerAdminRequestManagement.performCloseRequest());
+        HBox footer = UiFactory.actions(button_Return, UiFactory.spacer(), button_Quit);
+        VBox screen = new VBox(18,
+                UiFactory.card(label_PageTitle, label_UserDetails),
+                requestColumns,
+                editorCard,
+                footer);
+        screen.getStyleClass().add("pc-screen");
+        screen.setAlignment(Pos.TOP_CENTER);
+        VBox.setVgrow(requestColumns, Priority.ALWAYS);
 
-        setupButton(button_ReopenRequest, 300, 555, 210);
-        button_ReopenRequest.setOnAction(e -> ControllerAdminRequestManagement.performReopenRequest());
-
-        setupButton(button_UpdateReopenedRequest, 590, 555, 170);
-        button_UpdateReopenedRequest.setOnAction(e -> ControllerAdminRequestManagement.performUpdateReopenedRequest());
-
-        // Return / quit placed slightly above to avoid crowding.
-        setupButton(button_Return, 420, 350, 120);
-        button_Return.setOnAction(e -> ControllerAdminRequestManagement.performReturn());
-
-        setupButton(button_Quit, 550, 350, 120);
-        button_Quit.setOnAction(e -> ControllerAdminRequestManagement.performQuit());
-
-        theRootPane.getChildren().addAll(
-                label_PageTitle, label_UserDetails,
-                label_OpenRequests, label_ClosedRequests, label_Editor, label_LinkInfo,
-                listView_OpenRequests, listView_ClosedRequests,
-                text_RequestDescription,
-                button_CreateRequest, button_CloseRequest, button_ReopenRequest,
-                button_UpdateReopenedRequest, button_Return, button_Quit);
+        theScene = PeerConnectShell.scene(
+                ScreenSpec.of("Admin Requests",
+                        "Triage open requests, reopen closed issues, and keep moderation work visible.",
+                        theUser, roleLabel(), "bi-kanban"),
+                screen);
     }
 
     /** Refreshes both lists from the database. */
@@ -170,7 +171,6 @@ public class ViewAdminRequestManagement {
         }
 
         text_RequestDescription.setText(request.getDescription());
-
         if (request.getOriginalRequestId() == null) {
             label_LinkInfo.setText("Linked Original Request: none");
         } else {
@@ -192,14 +192,18 @@ public class ViewAdminRequestManagement {
     /** Gets the selected open request object. */
     public static AdminRequest getSelectedOpenRequest() {
         String selected = listView_OpenRequests.getSelectionModel().getSelectedItem();
-        if (selected == null) return null;
+        if (selected == null) {
+            return null;
+        }
         return openRequestMap.get(selected);
     }
 
     /** Gets the selected closed request object. */
     public static AdminRequest getSelectedClosedRequest() {
         String selected = listView_ClosedRequests.getSelectionModel().getSelectedItem();
-        if (selected == null) return null;
+        if (selected == null) {
+            return null;
+        }
         return closedRequestMap.get(selected);
     }
 
@@ -274,21 +278,7 @@ public class ViewAdminRequestManagement {
         button_CloseRequest.setDisable(!isAdmin);
     }
 
-    /** Shared label helper. */
-    private static void setupLabel(Label label, double fontSize, double minWidth,
-            Pos alignment, double x, double y) {
-        label.setFont(Font.font("Arial", fontSize));
-        label.setMinWidth(minWidth);
-        label.setAlignment(alignment);
-        label.setLayoutX(x);
-        label.setLayoutY(y);
-    }
-
-    /** Shared button helper. */
-    private static void setupButton(Button button, double x, double y, double minWidth) {
-        button.setFont(Font.font("Dialog", 14));
-        button.setMinWidth(minWidth);
-        button.setLayoutX(x);
-        button.setLayoutY(y);
+    private static String roleLabel() {
+        return theUser != null && theUser.getAdminRole() ? "Admin" : "Staff";
     }
 }

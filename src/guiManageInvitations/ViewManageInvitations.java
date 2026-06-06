@@ -1,165 +1,100 @@
 package guiManageInvitations;
 
-// Import statements bring in JavaFX UI tools and app classes
 import java.util.List;
+
 import database.Database;
 import entityClasses.User;
+import guiCommon.ActionSpec;
+import guiCommon.PeerConnectShell;
+import guiCommon.ScreenSpec;
+import guiCommon.UiFactory;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.util.Duration;
 
 public class ViewManageInvitations {
-
-    // Window dimensions from main app settings
-    private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-    private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
-
-    // Singleton pattern — ensures only one instance of this view exists
     private static ViewManageInvitations theView;
-
-    // Shared database instance
     public static Database theDatabase = applicationMain.FoundationsMain.database;
-    
     private static Timeline refreshTimer;
-    // GUI state variables
-    protected static Stage theStage;
-    protected static Pane theRootPane;
-    protected static User theUser;
 
-    // Scene object representing this screen
+    protected static Stage theStage;
+    protected static User theUser;
     public static Scene theManageInvitationsScene = null;
 
-    // UI elements
     protected static Label label_PageTitle = new Label("Outstanding Invitations");
     protected static Label label_UserDetails = new Label();
     protected static ListView<String> listView_Invitations = new ListView<>();
-    
-    protected static Button button_Return = new Button("Return");
-    protected static Button button_Delete = new Button("Delete");
-    protected static Button button_Quit = new Button("Quit");
 
-    	
-  
-    /***************************************************************
-     * displayManageInvitations
-     *
-     * Entry point for showing this screen.
-     * Called by ControllerAdminHome.
-     ***************************************************************/
+    protected static Button button_Return = UiFactory.action(
+            ActionSpec.of("Return", "bi-arrow-left", ControllerManageInvitations::performReturn,
+                    "pc-button-secondary"));
+    protected static Button button_Delete = UiFactory.action(
+            ActionSpec.of("Delete Selected", "bi-trash", ControllerManageInvitations::performDelete,
+                    "pc-button-danger"));
+    protected static Button button_Quit = UiFactory.action(
+            ActionSpec.of("Quit", "bi-x", ControllerManageInvitations::performQuit,
+                    "pc-button-secondary"));
+
     public static void displayManageInvitations(Stage ps, User user) {
-
         theStage = ps;
         theUser = user;
 
-        // Ensure only one instance exists
-        if (theView == null) theView = new ViewManageInvitations();
+        if (theView == null) {
+            theView = new ViewManageInvitations();
+        }
 
-        // Set monospaced font for column alignment
-        listView_Invitations.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 12;");
-
-        // Load invitation data from database
         populateInvitationList();
-
-        //refresh screen every section to show invitation timer counting 
-        if(refreshTimer != null) refreshTimer.stop();
-        refreshTimer = new Timeline(new KeyFrame(Duration.minutes(1), (_) -> populateInvitationList()));
-        
+        if (refreshTimer != null) {
+            refreshTimer.stop();
+        }
+        refreshTimer = new Timeline(new KeyFrame(Duration.minutes(1), _ -> populateInvitationList()));
         refreshTimer.setCycleCount(Timeline.INDEFINITE);
         refreshTimer.play();
-        // Switch scene
-        theStage.setScene(theManageInvitationsScene);
-        theStage.show();
+
+        PeerConnectShell.show(theStage, theManageInvitationsScene, "PeerConnect: Invitations");
     }
-    //stops the timer when you leave manage invitation screen
+
     protected static void stopTimer() {
-    	if(refreshTimer != null) {
-    		refreshTimer.stop();
-    		refreshTimer = null;
-    	}
+        if (refreshTimer != null) {
+            refreshTimer.stop();
+            refreshTimer = null;
+        }
     }
-    /***************************************************************
-     * Constructor builds all GUI components
-     ***************************************************************/
+
     public ViewManageInvitations() {
+        label_PageTitle.getStyleClass().add("pc-heading");
+        label_UserDetails.getStyleClass().add("pc-body");
+        UiFactory.prepareList(listView_Invitations, "Outstanding invitations");
 
-        theRootPane = new Pane();
-        theManageInvitationsScene = new Scene(theRootPane, width, height);
+        VBox listCard = UiFactory.card(UiFactory.section("Invitation codes", listView_Invitations));
+        VBox.setVgrow(listView_Invitations, Priority.ALWAYS);
+        VBox.setVgrow(listCard, Priority.ALWAYS);
 
-        // Page title formatting
-        label_PageTitle.setFont(Font.font("Arial", 28));
-        label_PageTitle.setMinWidth(width);
-        label_PageTitle.setAlignment(Pos.CENTER);
-        label_PageTitle.setLayoutX(0);
-        label_PageTitle.setLayoutY(20);
+        HBox footer = UiFactory.actions(button_Delete, UiFactory.spacer(), button_Return, button_Quit);
+        VBox screen = new VBox(18, UiFactory.card(label_PageTitle, label_UserDetails), listCard, footer);
+        screen.getStyleClass().add("pc-screen");
+        screen.setAlignment(Pos.TOP_CENTER);
+        VBox.setVgrow(listCard, Priority.ALWAYS);
 
-        // Logged-in user info
-        label_UserDetails.setFont(Font.font("Arial", 18));
-        label_UserDetails.setLayoutX(20);
-        label_UserDetails.setLayoutY(70);
-
-        // Invitation list display
-        listView_Invitations.setLayoutX(50);
-        listView_Invitations.setLayoutY(120);
-        listView_Invitations.setPrefSize(width - 100, height - 250);
-        //listView_Invitations.setItems(invitationData);
-        // Buttons
-        setupButton(button_Return, 20, height - 100);
-        button_Return.setOnAction((_) -> ControllerManageInvitations.performReturn());
-
-        setupButton(button_Delete, 300, height - 100);
-        button_Delete.setOnAction((_) -> ControllerManageInvitations.performDelete());
-
-        setupButton(button_Quit, 580, height - 100);
-        button_Quit.setOnAction((_) -> ControllerManageInvitations.performQuit());
-
-        // Add all elements to pane
-        theRootPane.getChildren().addAll(
-            label_PageTitle,
-            label_UserDetails,
-            listView_Invitations,
-            button_Return,
-            button_Delete,
-            button_Quit
-        );
+        theManageInvitationsScene = PeerConnectShell.scene(
+                ScreenSpec.of("Invitations", "Track active invitation codes and remove stale entries.",
+                        theUser, "Admin", "bi-envelope-open"),
+                screen);
     }
 
-    /***************************************************************
-     * populateInvitationList
-     *
-     * Fetches invitation data from DB and updates ListView.
-     ***************************************************************/
     public static void populateInvitationList() {
-    	
-    	
-    	
-
         List<String> invitationList = theDatabase.getInvitationListEnriched();
         listView_Invitations.setItems(FXCollections.observableArrayList(invitationList));
-
-       
-        label_UserDetails.setText("Logged in as: " + theUser.getUserName());
-        
-    }
-
-    /***************************************************************
-     * setupButton
-     *
-     * Utility method to reduce repetition when configuring buttons.
-     ***************************************************************/
-    private static void setupButton(Button b, double x, double y) {
-
-        b.setFont(Font.font("Dialog", 18));
-        b.setMinWidth(210);
-        b.setLayoutX(x);
-        b.setLayoutY(y);
+        label_UserDetails.setText("Logged in as " + theUser.getUserName());
     }
 }

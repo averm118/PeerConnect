@@ -1,15 +1,14 @@
 package guiNewAccount;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 import UserNameRecognizer.UserNameRecognizer;
 import guiChangePassword.ModelChangePassword;
 
-public class Validation {
-
-	//Username Validation
-	
+public class ValidationTest {
     @Test
     void testUsernameTooSmallFails() {
         String result = UserNameRecognizer.checkForValidUserName("abc");
@@ -47,9 +46,6 @@ public class Validation {
         assertTrue(UserNameRecognizer.checkForValidUserName("Bob_Smith").isEmpty());
         assertTrue(UserNameRecognizer.checkForValidUserName("john.doe99").isEmpty());
     }
-
-
-    //Password Validation
 
     @Test
     void testPasswordTooSmallFails() {

@@ -83,8 +83,7 @@ public class ControllerAdminHome {
 		
 		// Update the Admin Home pages status
 		ViewAdminHome.text_InvitationEmailAddress.setText("");
-		ViewAdminHome.label_NumberOfInvitations.setText("Number of outstanding invitations: " + 
-				theDatabase.getNumberOfInvitations());
+		ViewAdminHome.label_NumberOfInvitations.setText(String.valueOf(theDatabase.getNumberOfInvitations()));
 	}
 	
 	/**********
