@@ -438,10 +438,10 @@ public class PostDatabase {
      */
     public void deleteThread(String threadName) {
         String deleteReadStatus = 
-            "DELETE FROM ReadStatus WHERE post_id IN (SELECT id FROM Posts WHERE TRIM(LOWER(thread)) = TRIM(LOWER(?)))";
+            "DELETE FROM ReadStatus WHERE post_id IN (SELECT id FROM Posts WHERE thread = ?)";
 
         String deletePosts = 
-            "DELETE FROM Posts WHERE TRIM(LOWER(thread)) = TRIM(LOWER(?))";
+            "DELETE FROM Posts WHERE thread = ?";
 
         try {
             connection.setAutoCommit(false);
